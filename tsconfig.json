@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@entities/*": ["src/entities/*"]
+    },
+    "target": "ES6",
+    "module": "CommonJS",
+    "outDir": "dist",
+    "skipLibCheck": true,
+    "strict": true,
+    "esModuleInterop": true
+  },
+}
