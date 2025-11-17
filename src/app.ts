@@ -26,8 +26,8 @@ app.use(express.json());
 app.use((req, res, next) => {
   console.log(`🌐 ${req.method} ${req.path} - Headers:`, {
     host: req.headers.host,
-    'x-forwarded-proto': req.headers['x-forwarded-proto'],
-    'user-agent': req.headers['user-agent']
+    "x-forwarded-proto": req.headers["x-forwarded-proto"],
+    "user-agent": req.headers["user-agent"],
   });
   next();
 });
@@ -40,7 +40,7 @@ app.get("/health", (_, res) => {
     uptime: process.uptime(),
     firebase: !!process.env.FIREBASE_ADMIN_KEY,
     environment: process.env.NODE_ENV || "development",
-    routesLoaded: typeof routesLoaded !== 'undefined' ? routesLoaded : false,
+    routesLoaded: typeof routesLoaded !== "undefined" ? routesLoaded : false,
   });
 });
 
@@ -55,7 +55,10 @@ app.get("/", (_, res) => {
 
 // Simple test endpoints for debugging
 app.get("/test", (_, res) => {
-  res.json({ message: "Test endpoint working", timestamp: new Date().toISOString() });
+  res.json({
+    message: "Test endpoint working",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.get("/debug", (_, res) => {
@@ -100,31 +103,41 @@ try {
 } catch (error) {
   console.error("❌ Error loading routes:", error);
   console.warn("⚠️ App will continue with basic routes only");
-  
+
   // Add fallback routes for error cases
   app.get("/courses", (req, res) => {
-    res.status(503).json({ 
-      error: "Service temporarily unavailable", 
-      message: "Routes are loading, please try again in a moment" 
+    res.status(503).json({
+      error: "Service temporarily unavailable",
+      message: "Routes are loading, please try again in a moment",
     });
   });
-  
+
   app.get("/services", (req, res) => {
-    res.status(503).json({ 
-      error: "Service temporarily unavailable", 
-      message: "Routes are loading, please try again in a moment" 
+    res.status(503).json({
+      error: "Service temporarily unavailable",
+      message: "Routes are loading, please try again in a moment",
     });
   });
-  
+
   app.use("/payment", (req, res) => {
-    res.status(503).json({ 
-      error: "Service temporarily unavailable", 
-      message: "Routes are loading, please try again in a moment" 
+    res.status(503).json({
+      error: "Service temporarily unavailable",
+      message: "Routes are loading, please try again in a moment",
     });
   });
 }
 
-// Error handling middleware
+// 404 handler for undefined routes
+app.use((req, res) => {
+  console.warn(`⚠️ 404 - Route not found: ${req.method} ${req.path}`);
+  res.status(404).json({
+    error: "Not Found",
+    message: `Route ${req.method} ${req.path} does not exist`,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Error handling middleware - MUST be last
 app.use(
   (
     err: Error,
@@ -132,8 +145,22 @@ app.use(
     res: express.Response,
     next: express.NextFunction
   ) => {
-    console.error("Error:", err.message);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("❌ Unhandled error:", {
+      message: err.message,
+      stack: err.stack,
+      path: req.path,
+      method: req.method,
+    });
+
+    // Don't expose internal errors in production
+    res.status(500).json({
+      error: "Internal server error",
+      message:
+        process.env.NODE_ENV === "production"
+          ? "Something went wrong"
+          : err.message,
+      timestamp: new Date().toISOString(),
+    });
   }
 );
 

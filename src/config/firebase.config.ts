@@ -30,11 +30,28 @@ if (serviceAccount && !admin.apps.length) {
   console.warn("⚠️ Firebase not initialized - missing configuration");
 }
 
+// Create a proper fallback that logs errors but doesn't crash
 const db = firebaseInitialized
   ? admin.firestore()
   : ({
       collection: () => {
-        throw new Error("Firebase not initialized");
+        console.error("❌ Attempted to use Firebase when not initialized");
+        return {
+          get: async () => ({ docs: [] }),
+          doc: () => ({
+            get: async () => ({ exists: false }),
+            set: async () =>
+              console.warn("⚠️ Firebase write attempted but not initialized"),
+            update: async () =>
+              console.warn("⚠️ Firebase update attempted but not initialized"),
+            delete: async () =>
+              console.warn("⚠️ Firebase delete attempted but not initialized"),
+          }),
+          add: async () => {
+            console.warn("⚠️ Firebase add attempted but not initialized");
+            return { id: "mock-id" };
+          },
+        };
       },
     } as any);
 

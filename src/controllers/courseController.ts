@@ -19,7 +19,12 @@ export const getAllCourses = async (
     return;
   } catch (error) {
     console.error("❌ Error getting courses:", error);
-    res.status(500).json({ message: "Error getting courses", error: error instanceof Error ? error.message : String(error) });
+    res
+      .status(500)
+      .json({
+        message: "Error getting courses",
+        error: error instanceof Error ? error.message : String(error),
+      });
 
     return;
   }
@@ -30,10 +35,7 @@ export const getCourseById = async (
   res: Response
 ): Promise<void> => {
   try {
-    const course = await getCourseByIdUseCase(
-      req.params.id,
-      courseRepository
-    );
+    const course = await getCourseByIdUseCase(req.params.id, courseRepository);
     if (!course) {
       res.status(404).json({ message: "Course not found" });
       return;
@@ -59,11 +61,9 @@ export const createCourse = async (
       .json({ id: serviceId, message: "Course successfully created" });
     return;
   } catch (error) {
-    res
-      .status(400)
-      .json({
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
+    res.status(400).json({
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
     return;
   }
 };
@@ -78,11 +78,9 @@ export const updateCourse = async (
     res.status(200).json({ message: "Course successfully updated" });
     return;
   } catch (error) {
-    res
-      .status(400)
-      .json({
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
+    res.status(400).json({
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
     return;
   }
 };
@@ -97,11 +95,9 @@ export const deleteCourse = async (
     res.status(200).json({ message: "Course successfully deleted" });
     return;
   } catch (error) {
-    res
-      .status(400)
-      .json({
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
+    res.status(400).json({
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
     return;
   }
 };
