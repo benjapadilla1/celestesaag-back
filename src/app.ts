@@ -22,6 +22,16 @@ app.use(cors(corsOptions));
 app.use(morgan("dev"));
 app.use(express.json());
 
+// Debug middleware to log all requests
+app.use((req, res, next) => {
+  console.log(`🌐 ${req.method} ${req.path} - Headers:`, {
+    host: req.headers.host,
+    'x-forwarded-proto': req.headers['x-forwarded-proto'],
+    'user-agent': req.headers['user-agent']
+  });
+  next();
+});
+
 // Add health check BEFORE any other middleware that might fail
 app.get("/health", (_, res) => {
   res.status(200).json({
@@ -43,18 +53,35 @@ app.get("/", (_, res) => {
   });
 });
 
-// Security headers for HTTPS
-app.use((req, res, next) => {
-  // Force HTTPS in production
-  if (
-    process.env.NODE_ENV === "production" &&
-    req.header("x-forwarded-proto") !== "https"
-  ) {
-    res.redirect(`https://${req.header("host")}${req.url}`);
-  } else {
-    next();
-  }
+// Simple test endpoints for debugging
+app.get("/test", (_, res) => {
+  res.json({ message: "Test endpoint working", timestamp: new Date().toISOString() });
 });
+
+app.get("/debug", (_, res) => {
+  res.json({
+    environment: process.env.NODE_ENV,
+    port: process.env.PORT,
+    host: process.env.HOST,
+    firebase: !!process.env.FIREBASE_ADMIN_KEY,
+    uptime: process.uptime(),
+    nodeVersion: process.version,
+    platform: process.platform,
+  });
+});
+
+// Security headers for HTTPS - disabled temporarily for debugging
+// app.use((req, res, next) => {
+//   // Force HTTPS in production
+//   if (
+//     process.env.NODE_ENV === "production" &&
+//     req.header("x-forwarded-proto") !== "https"
+//   ) {
+//     res.redirect(`https://${req.header("host")}${req.url}`);
+//   } else {
+//     next();
+//   }
+// });
 
 // Load routes immediately but with error handling
 let routesLoaded = false;

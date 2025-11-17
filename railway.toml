@@ -4,9 +4,8 @@ command = "npm run build"
 [deploy]
 startCommand = "npm start"
 healthcheckPath = "/health"
-healthcheckTimeout = 300
+healthcheckTimeout = 86400
 restartPolicyType = "on_failure"
-healthcheckGracePeriod = 60
 
 [variables]
 NODE_ENV = "production"
