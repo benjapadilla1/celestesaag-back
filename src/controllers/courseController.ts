@@ -11,12 +11,15 @@ export const getAllCourses = async (
   res: Response
 ): Promise<void> => {
   try {
+    console.log("📚 Getting all courses...");
     const courses = await getCoursesUseCase(courseRepository);
+    console.log(`📚 Found ${courses.length} courses`);
 
     res.status(200).json(courses);
     return;
   } catch (error) {
-    res.status(500).json({ message: "Error getting courses", error });
+    console.error("❌ Error getting courses:", error);
+    res.status(500).json({ message: "Error getting courses", error: error instanceof Error ? error.message : String(error) });
 
     return;
   }

@@ -30,6 +30,7 @@ app.get("/health", (_, res) => {
     uptime: process.uptime(),
     firebase: !!process.env.FIREBASE_ADMIN_KEY,
     environment: process.env.NODE_ENV || "development",
+    routesLoaded: typeof routesLoaded !== 'undefined' ? routesLoaded : false,
   });
 });
 
@@ -55,24 +56,46 @@ app.use((req, res, next) => {
   }
 });
 
-// Load routes asynchronously to prevent blocking app startup
-setTimeout(() => {
-  try {
-    console.log("Loading routes...");
-    const coursesRoutes = require("./routes/courses").default;
-    const paymentRoutes = require("./routes/payment").default;
-    const servicesRoutes = require("./routes/services").default;
+// Load routes immediately but with error handling
+let routesLoaded = false;
+try {
+  console.log("Loading routes...");
+  const coursesRoutes = require("./routes/courses").default;
+  const paymentRoutes = require("./routes/payment").default;
+  const servicesRoutes = require("./routes/services").default;
 
-    app.use("/payment", paymentRoutes);
-    app.use("/services", servicesRoutes);
-    app.use("/courses", coursesRoutes);
+  app.use("/payment", paymentRoutes);
+  app.use("/services", servicesRoutes);
+  app.use("/courses", coursesRoutes);
 
-    console.log("✅ All routes loaded successfully");
-  } catch (error) {
-    console.error("❌ Error loading routes:", error);
-    console.warn("⚠️ App will continue with basic routes only");
-  }
-}, 100);
+  routesLoaded = true;
+  console.log("✅ All routes loaded successfully");
+} catch (error) {
+  console.error("❌ Error loading routes:", error);
+  console.warn("⚠️ App will continue with basic routes only");
+  
+  // Add fallback routes for error cases
+  app.get("/courses", (req, res) => {
+    res.status(503).json({ 
+      error: "Service temporarily unavailable", 
+      message: "Routes are loading, please try again in a moment" 
+    });
+  });
+  
+  app.get("/services", (req, res) => {
+    res.status(503).json({ 
+      error: "Service temporarily unavailable", 
+      message: "Routes are loading, please try again in a moment" 
+    });
+  });
+  
+  app.use("/payment", (req, res) => {
+    res.status(503).json({ 
+      error: "Service temporarily unavailable", 
+      message: "Routes are loading, please try again in a moment" 
+    });
+  });
+}
 
 // Error handling middleware
 app.use(

@@ -18,12 +18,15 @@ const getCourses_1 = require("../useCases/courses/getCourses");
 const updateCourse_1 = require("../useCases/courses/updateCourse");
 const getAllCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log("📚 Getting all courses...");
         const courses = yield (0, getCourses_1.getCoursesUseCase)(courseRepository_1.courseRepository);
+        console.log(`📚 Found ${courses.length} courses`);
         res.status(200).json(courses);
         return;
     }
     catch (error) {
-        res.status(500).json({ message: "Error getting courses", error });
+        console.error("❌ Error getting courses:", error);
+        res.status(500).json({ message: "Error getting courses", error: error instanceof Error ? error.message : String(error) });
         return;
     }
 });

@@ -7,11 +7,14 @@ Environment: undefined
 Port: undefined
 Firebase key present: true
 🔧 Starting server...
-✅ Server running on 0.0.0.0:5000
-🌐 Health check: http://celestesaag-production.up.railway.app/health
-🚀 Server is ready to accept connections
-Loading routes...
-✅ Firebase initialized successfully
-✅ All routes loaded successfully
-[0mGET /health [32m200[0m 1.441 ms - 119[0m
-[0mGET / [32m200[0m 0.375 ms - 114[0m
+❌ Server error: Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:1898:16)
+    at listenInCluster (node:net:1946:12)
+    at doListen (node:net:2116:7)
+    at process.processTicksAndRejections (node:internal/process/task_queues:83:21) {
+  code: 'EADDRINUSE',
+  [0mGET /courses [32m200[0m 856.038 ms - 14969[0m
+[0mGET /courses [32m200[0m 200.978 ms - 14969[0m
+[0mGET /health [32m200[0m 0.201 ms - 121[0m
+📤 SIGTERM received, shutting down gracefully
+🔄 Process terminated
