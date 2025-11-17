@@ -10,5 +10,6 @@ const HOST = process.env.HOST || "0.0.0.0";
 console.log("🔧 Starting server...");
 app_1.default.listen(PORT, HOST, () => {
     console.log(`✅ Server running on ${HOST}:${PORT}`);
-    console.log(`🌐 Health check: http://${HOST}:${PORT}/health`);
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    console.log(`🌐 Health check: ${protocol}://celestesaag-production.up.railway.app/health`);
 });

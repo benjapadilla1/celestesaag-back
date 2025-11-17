@@ -10,9 +10,27 @@ console.log("Environment:", process.env.NODE_ENV);
 console.log("Port:", process.env.PORT);
 console.log("Firebase key present:", !!process.env.FIREBASE_ADMIN_KEY);
 
-app.use(cors());
+// Configure CORS for production
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || "https://celestesaag.vercel.app",
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 app.use(morgan("dev"));
 app.use(express.json());
+
+// Security headers for HTTPS
+app.use((req, res, next) => {
+  // Force HTTPS in production
+  if (process.env.NODE_ENV === 'production' && req.header('x-forwarded-proto') !== 'https') {
+    res.redirect(`https://${req.header('host')}${req.url}`);
+  } else {
+    next();
+  }
+});
 
 // Safely load routes with error handling
 try {
@@ -20,11 +38,11 @@ try {
   const coursesRoutes = require("./routes/courses").default;
   const paymentRoutes = require("./routes/payment").default;
   const servicesRoutes = require("./routes/services").default;
-  
+
   app.use("/payment", paymentRoutes);
   app.use("/services", servicesRoutes);
   app.use("/courses", coursesRoutes);
-  
+
   console.log("✅ All routes loaded successfully");
 } catch (error) {
   console.error("❌ Error loading routes:", error);

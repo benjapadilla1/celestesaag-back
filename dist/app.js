@@ -12,9 +12,26 @@ console.log("🚀 Starting application...");
 console.log("Environment:", process.env.NODE_ENV);
 console.log("Port:", process.env.PORT);
 console.log("Firebase key present:", !!process.env.FIREBASE_ADMIN_KEY);
-app.use((0, cors_1.default)());
+// Configure CORS for production
+const corsOptions = {
+    origin: process.env.FRONTEND_URL || "https://celestesaag.vercel.app",
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+};
+app.use((0, cors_1.default)(corsOptions));
 app.use((0, morgan_1.default)("dev"));
 app.use(express_1.default.json());
+// Security headers for HTTPS
+app.use((req, res, next) => {
+    // Force HTTPS in production
+    if (process.env.NODE_ENV === 'production' && req.header('x-forwarded-proto') !== 'https') {
+        res.redirect(`https://${req.header('host')}${req.url}`);
+    }
+    else {
+        next();
+    }
+});
 // Safely load routes with error handling
 try {
     console.log("Loading routes...");
