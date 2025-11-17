@@ -14,8 +14,8 @@ console.log("Firebase key present:", !!process.env.FIREBASE_ADMIN_KEY);
 const corsOptions = {
   origin: process.env.FRONTEND_URL || "https://celestesaag.vercel.app",
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
 app.use(cors(corsOptions));
@@ -25,8 +25,11 @@ app.use(express.json());
 // Security headers for HTTPS
 app.use((req, res, next) => {
   // Force HTTPS in production
-  if (process.env.NODE_ENV === 'production' && req.header('x-forwarded-proto') !== 'https') {
-    res.redirect(`https://${req.header('host')}${req.url}`);
+  if (
+    process.env.NODE_ENV === "production" &&
+    req.header("x-forwarded-proto") !== "https"
+  ) {
+    res.redirect(`https://${req.header("host")}${req.url}`);
   } else {
     next();
   }

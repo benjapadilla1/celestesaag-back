@@ -8,6 +8,8 @@ console.log("🔧 Starting server...");
 
 app.listen(PORT, HOST, () => {
   console.log(`✅ Server running on ${HOST}:${PORT}`);
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-  console.log(`🌐 Health check: ${protocol}://celestesaag-production.up.railway.app/health`);
+  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+  console.log(
+    `🌐 Health check: ${protocol}://celestesaag-production.up.railway.app/health`
+  );
 });
