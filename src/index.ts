@@ -1,8 +1,9 @@
 import "dotenv/config";
 import app from "./app";
 
+// Railway provides PORT automatically, fallback to 5000 for local dev
 const PORT = Number(process.env.PORT) || 5000;
-const HOST = process.env.HOST || "0.0.0.0";
+const HOST = "0.0.0.0"; // Always bind to 0.0.0.0 for Railway
 
 console.log("🔧 Starting server...");
 

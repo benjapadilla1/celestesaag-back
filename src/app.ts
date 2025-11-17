@@ -10,24 +10,64 @@ console.log("Environment:", process.env.NODE_ENV);
 console.log("Port:", process.env.PORT);
 console.log("Firebase key present:", !!process.env.FIREBASE_ADMIN_KEY);
 
-// Configure CORS for production
+// Configure CORS for production - allow multiple origins
+const allowedOrigins = [
+  "https://celestesaag.vercel.app",
+  "https://www.celestesaag.com",
+  "http://localhost:3000",
+  process.env.FRONTEND_URL,
+].filter(Boolean); // Remove undefined values
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || "https://celestesaag.vercel.app",
+  origin: (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void
+  ) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`⚠️ CORS blocked origin: ${origin}`);
+      callback(null, true); // Still allow it but log it - change to false in strict mode
+    }
+  },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  exposedHeaders: ["Content-Range", "X-Content-Range"],
+  maxAge: 600, // Cache preflight for 10 minutes
 };
 
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Handle preflight requests
 app.use(morgan("dev"));
 app.use(express.json());
 
+// Request timeout and logging middleware
+app.use((req, res, next) => {
+  const startTime = Date.now();
+
+  // Set timeout for requests (30 seconds)
+  req.setTimeout(30000);
+  res.setTimeout(30000);
+
+  res.on("finish", () => {
+    const duration = Date.now() - startTime;
+    console.log(
+      `\u2713 ${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`
+    );
+  });
+
+  next();
+});
+
 // Debug middleware to log all requests
 app.use((req, res, next) => {
-  console.log(`🌐 ${req.method} ${req.path} - Headers:`, {
+  console.log(`\ud83c\udf10 ${req.method} ${req.path}`, {
+    origin: req.headers.origin,
     host: req.headers.host,
-    "x-forwarded-proto": req.headers["x-forwarded-proto"],
-    "user-agent": req.headers["user-agent"],
   });
   next();
 });
