@@ -1,9 +1,6 @@
 import cors from "cors";
 import express from "express";
 import morgan from "morgan";
-import coursesRoutes from "./routes/courses";
-import paymentRoutes from "./routes/payment";
-import servicesRoutes from "./routes/services";
 
 const app = express();
 
@@ -15,16 +12,32 @@ console.log("Firebase key present:", !!process.env.FIREBASE_ADMIN_KEY);
 
 app.use(cors());
 app.use(morgan("dev"));
-
 app.use(express.json());
 
-app.use("/payment", paymentRoutes);
-app.use("/services", servicesRoutes);
-app.use("/courses", coursesRoutes);
+// Safely load routes with error handling
+try {
+  console.log("Loading routes...");
+  const coursesRoutes = require("./routes/courses").default;
+  const paymentRoutes = require("./routes/payment").default;
+  const servicesRoutes = require("./routes/services").default;
+  
+  app.use("/payment", paymentRoutes);
+  app.use("/services", servicesRoutes);
+  app.use("/courses", coursesRoutes);
+  
+  console.log("✅ All routes loaded successfully");
+} catch (error) {
+  console.error("❌ Error loading routes:", error);
+  console.warn("⚠️ App will continue with basic routes only");
+}
 
 // Health check endpoints
 app.get("/", (_, res) => {
-  res.send("✅ Testing Railway");
+  res.json({
+    message: "✅ Backend is running on Railway",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+  });
 });
 
 app.get("/health", (_, res) => {
@@ -32,6 +45,8 @@ app.get("/health", (_, res) => {
     status: "ok",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    firebase: !!process.env.FIREBASE_ADMIN_KEY,
+    environment: process.env.NODE_ENV || "development",
   });
 });
 
