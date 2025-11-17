@@ -1,0 +1,17 @@
+
+> backend@1.0.0 start
+> node dist/index.js
+
+🚀 Starting application...
+Environment: undefined
+Port: undefined
+Firebase key present: true
+🔧 Starting server...
+✅ Server running on 0.0.0.0:5000
+🌐 Health check: http://celestesaag-production.up.railway.app/health
+🚀 Server is ready to accept connections
+Loading routes...
+✅ Firebase initialized successfully
+✅ All routes loaded successfully
+[0mGET /health [32m200[0m 1.441 ms - 119[0m
+[0mGET / [32m200[0m 0.375 ms - 114[0m
