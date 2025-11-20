@@ -8,10 +8,39 @@ try {
     console.warn("⚠️ FIREBASE_ADMIN_KEY environment variable is not set");
     serviceAccount = null;
   } else {
-    serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_KEY);
+    console.log("📝 Parsing FIREBASE_ADMIN_KEY...");
+
+    // Parse the JSON string from environment variable
+    let rawKey = process.env.FIREBASE_ADMIN_KEY;
+
+    // Handle escaped newlines in private_key
+    // Railway might escape the JSON, so we need to handle both cases
+    try {
+      serviceAccount = JSON.parse(rawKey);
+    } catch (firstError) {
+      console.log("⚠️ First parse failed, trying to unescape...");
+      // Try unescaping if it's double-escaped
+      rawKey = rawKey.replace(/\\n/g, "\n").replace(/\\"/g, '"');
+      serviceAccount = JSON.parse(rawKey);
+    }
+
+    // Ensure private_key has proper newlines
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(
+        /\\n/g,
+        "\n"
+      );
+    }
+
+    console.log("✅ FIREBASE_ADMIN_KEY parsed successfully");
+    console.log("📋 Project ID:", serviceAccount.project_id);
   }
 } catch (error) {
   console.error("❌ Firebase configuration error:", error);
+  console.error(
+    "Raw key preview:",
+    process.env.FIREBASE_ADMIN_KEY?.substring(0, 100) + "..."
+  );
   serviceAccount = null;
 }
 
