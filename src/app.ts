@@ -11,7 +11,7 @@ console.log("Port:", process.env.PORT);
 console.log("Firebase key present:", !!process.env.FIREBASE_ADMIN_KEY);
 
 // Configure CORS for production - allow multiple origins
-const allowedOrigins = [
+export const allowedOrigins = [
   "https://celestesaag.vercel.app",
   "https://www.celestesaag.com",
   "http://localhost:3000",
@@ -65,9 +65,11 @@ app.use((req, res, next) => {
 
 // Debug middleware to log all requests
 app.use((req, res, next) => {
-  console.log(`\ud83c\udf10 ${req.method} ${req.path}`, {
-    origin: req.headers.origin,
+  console.log(`🌐 Incoming: ${req.method} ${req.path}`, {
+    origin: req.headers.origin || "no-origin",
     host: req.headers.host,
+    referer: req.headers.referer,
+    userAgent: req.headers["user-agent"]?.substring(0, 50),
   });
   next();
 });

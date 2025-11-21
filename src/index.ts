@@ -1,5 +1,5 @@
 import "dotenv/config";
-import app from "./app";
+import app, { allowedOrigins } from "./app";
 
 // Railway provides PORT automatically, fallback to 5000 for local dev
 const PORT = Number(process.env.PORT) || 5000;
@@ -9,11 +9,11 @@ console.log("🔧 Starting server...");
 
 const server = app.listen(PORT, HOST, () => {
   console.log(`✅ Server running on ${HOST}:${PORT}`);
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
-  console.log(
-    `🌐 Health check: ${protocol}://celestesaag-production.up.railway.app/health`
-  );
+  const isProduction = process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT;
+  const protocol = isProduction ? "https" : "http";
+  console.log(`🌐 Health check: ${protocol}://celestesaag-production.up.railway.app/health`);
   console.log("🚀 Server is ready to accept connections");
+  console.log(`📡 Listening for requests from: ${allowedOrigins.join(", ")}`);
 });
 
 // Handle server errors
