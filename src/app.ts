@@ -18,29 +18,82 @@ export const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean); // Remove undefined values
 
-const corsOptions = {
+console.log("🔐 CORS allowed origins:", allowedOrigins);
+
+const corsOptions: cors.CorsOptions = {
   origin: (
     origin: string | undefined,
     callback: (err: Error | null, allow?: boolean) => void
   ) => {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) {
+      console.log("✅ Request with no origin - allowing");
+      return callback(null, true);
+    }
+
+    console.log(`🔍 Checking origin: ${origin}`);
 
     if (allowedOrigins.includes(origin)) {
+      console.log(`✅ Origin allowed: ${origin}`);
       callback(null, true);
     } else {
-      console.warn(`⚠️ CORS blocked origin: ${origin}`);
-      callback(null, true); // Still allow it but log it - change to false in strict mode
+      console.warn(`⚠️ Origin not in whitelist: ${origin}`);
+      // Allow it anyway but log the warning
+      callback(null, true);
     }
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
+  ],
   exposedHeaders: ["Content-Range", "X-Content-Range"],
-  maxAge: 600, // Cache preflight for 10 minutes
+  maxAge: 86400, // 24 hours
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));
+
+// Explicit CORS headers middleware as fallback
+app.use(
+  (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const origin = req.headers.origin;
+
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    } else if (!origin) {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+    } else {
+      // Allow anyway but log
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    }
+
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-Requested-With, Accept, Origin"
+    );
+    res.setHeader("Access-Control-Max-Age", "86400");
+
+    // Handle preflight
+    if (req.method === "OPTIONS") {
+      res.status(204).end();
+      return;
+    }
+
+    next();
+  }
+);
+
 app.options("*", cors(corsOptions)); // Handle preflight requests
 app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" })); // Add size limit
