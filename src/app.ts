@@ -4,6 +4,9 @@ import morgan from "morgan";
 
 const app = express();
 
+// Trust Railway proxy
+app.set("trust proxy", true);
+
 // Add startup logging
 console.log("🚀 Starting application...");
 console.log("Environment:", process.env.NODE_ENV);
@@ -62,6 +65,16 @@ app.use(cors(corsOptions));
 // Explicit CORS headers middleware as fallback
 app.use(
   (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    // Log all incoming requests first
+    console.log(`🌐 Incoming: ${req.method} ${req.path}`, {
+      origin: req.headers.origin || "no-origin",
+      host: req.headers.host,
+      referer: req.headers.referer,
+      userAgent: req.headers["user-agent"]?.substring(0, 50),
+      ip: req.ip,
+      ips: req.ips,
+    });
+
     const origin = req.headers.origin;
 
     if (origin && allowedOrigins.includes(origin)) {
