@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { Payment } from "mercadopago";
 import { MPClient } from "../config/mercadopago";
 import { courseWebhook } from "./course/courseWebhook";
-import { turnWebhook } from "./turn/turnWebhook";
 
 const defineWebhook = async (req: Request, res: Response) => {
   try {
@@ -10,15 +9,13 @@ const defineWebhook = async (req: Request, res: Response) => {
 
     if (!paymentId || typeof paymentId !== "string") {
       res.status(400).json({ error: "Invalid payment ID" });
-      return
+      return;
     }
 
     await handleWebhook(paymentId, async (paymentInfo) => {
       const { type } = paymentInfo.metadata;
       if (type === "course") {
         await courseWebhook(paymentInfo);
-      } else if (type === "turn") {
-        await turnWebhook(paymentInfo);
       } else {
         console.warn("Unknown payment type:", type);
       }

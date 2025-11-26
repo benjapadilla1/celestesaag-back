@@ -116,32 +116,16 @@ app.get("/debug", (_, res) => {
   });
 });
 
-// Security headers for HTTPS - disabled temporarily for debugging
-// app.use((req, res, next) => {
-//   // Force HTTPS in production
-//   if (
-//     process.env.NODE_ENV === "production" &&
-//     req.header("x-forwarded-proto") !== "https"
-//   ) {
-//     res.redirect(`https://${req.header("host")}${req.url}`);
-//   } else {
-//     next();
-//   }
-// });
-
-// Load routes immediately but with error handling
 let routesLoaded = false;
 try {
   console.log("Loading routes...");
   const coursesRoutes = require("./routes/courses").default;
   const paymentRoutes = require("./routes/payment").default;
   const servicesRoutes = require("./routes/services").default;
-  const turnsRoutes = require("./routes/turns").default;
 
   app.use("/payment", paymentRoutes);
   app.use("/services", servicesRoutes);
   app.use("/courses", coursesRoutes);
-  app.use("/turns", turnsRoutes);
 
   routesLoaded = true;
   console.log("✅ All routes loaded successfully");
