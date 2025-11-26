@@ -43,7 +43,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions)); // Handle preflight requests
 app.use(morgan("dev"));
-app.use(express.json());
+app.use(express.json({ limit: "10mb" })); // Add size limit
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Request timeout and logging middleware
 app.use((req, res, next) => {
@@ -135,10 +136,12 @@ try {
   const coursesRoutes = require("./routes/courses").default;
   const paymentRoutes = require("./routes/payment").default;
   const servicesRoutes = require("./routes/services").default;
+  const turnsRoutes = require("./routes/turns").default;
 
   app.use("/payment", paymentRoutes);
   app.use("/services", servicesRoutes);
   app.use("/courses", coursesRoutes);
+  app.use("/turns", turnsRoutes);
 
   routesLoaded = true;
   console.log("✅ All routes loaded successfully");
@@ -161,6 +164,13 @@ try {
     });
   });
 
+  app.get("/turns/:userId", (req, res) => {
+    res.status(503).json({
+      error: "Service temporarily unavailable",
+      message: "Routes are loading, please try again in a moment",
+    });
+  });
+
   app.use("/payment", (req, res) => {
     res.status(503).json({
       error: "Service temporarily unavailable",
@@ -170,7 +180,7 @@ try {
 }
 
 // 404 handler for undefined routes
-app.use((req, res) => {
+app.use((req, res, next) => {
   console.warn(`⚠️ 404 - Route not found: ${req.method} ${req.path}`);
   res.status(404).json({
     error: "Not Found",
@@ -192,7 +202,13 @@ app.use(
       stack: err.stack,
       path: req.path,
       method: req.method,
+      headers: req.headers,
     });
+
+    // Prevent sending headers twice
+    if (res.headersSent) {
+      return next(err);
+    }
 
     // Don't expose internal errors in production
     res.status(500).json({
