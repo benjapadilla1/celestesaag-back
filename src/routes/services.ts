@@ -1,12 +1,19 @@
 import { Router } from "express";
-import { createService, deleteService, getAllServices, getServiceById, updateService } from "../controllers/serviceController";
+import {
+  createService,
+  deleteService,
+  getAllServices,
+  getServiceById,
+  updateService,
+} from "../controllers/serviceController";
+import { asyncHandler } from "../middleware/asyncHandler";
 
 const router = Router();
 
-router.get("/", getAllServices);
-router.get("/:id", getServiceById);
-router.post("/", createService);
-router.put("/:id", updateService);
-router.delete("/:id", deleteService);
+router.get("/", asyncHandler(getAllServices));
+router.get("/:id", asyncHandler(getServiceById));
+router.post("/", asyncHandler(createService));
+router.put("/:id", asyncHandler(updateService));
+router.delete("/:id", asyncHandler(deleteService));
 
 export default router;

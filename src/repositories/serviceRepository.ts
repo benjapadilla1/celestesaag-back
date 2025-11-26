@@ -6,8 +6,10 @@ const servicesCollection = db.collection("services");
 export class ServiceRepository {
   async getAllServices(): Promise<Service[]> {
     if (!firebaseInitialized) {
-      console.warn("⚠️ Firebase not initialized, returning empty array");
-      return [];
+      console.error("❌ Firebase not initialized - cannot get services");
+      throw new Error(
+        "Firebase not initialized. Please check server configuration."
+      );
     }
 
     try {
@@ -21,7 +23,6 @@ export class ServiceRepository {
       throw error;
     }
   }
-
   async getServiceById(id: string): Promise<Service | null> {
     if (!firebaseInitialized) {
       console.warn("⚠️ Firebase not initialized");

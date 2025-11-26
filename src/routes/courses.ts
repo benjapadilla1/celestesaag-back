@@ -1,12 +1,19 @@
 import { Router } from "express";
-import { createCourse, deleteCourse, getAllCourses, getCourseById, updateCourse } from "../controllers/courseController";
+import {
+  createCourse,
+  deleteCourse,
+  getAllCourses,
+  getCourseById,
+  updateCourse,
+} from "../controllers/courseController";
+import { asyncHandler } from "../middleware/asyncHandler";
 
 const router = Router();
 
-router.get("/", getAllCourses);
-router.get("/:id", getCourseById);
-router.post("/", createCourse);
-router.put("/:id", updateCourse);
-router.delete("/:id", deleteCourse);
+router.get("/", asyncHandler(getAllCourses));
+router.get("/:id", asyncHandler(getCourseById));
+router.post("/", asyncHandler(createCourse));
+router.put("/:id", asyncHandler(updateCourse));
+router.delete("/:id", asyncHandler(deleteCourse));
 
 export default router;

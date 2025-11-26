@@ -247,12 +247,21 @@ app.use(
       return next(err);
     }
 
-    // Don't expose internal errors in production
+    // Ensure CORS headers are set even on error
+    const origin = req.headers.origin;
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    } else if (origin) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    }
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+
+    // Send error response
     res.status(500).json({
       error: "Internal server error",
       message:
         process.env.NODE_ENV === "production"
-          ? "Something went wrong"
+          ? "Something went wrong. Please try again later."
           : err.message,
       timestamp: new Date().toISOString(),
     });

@@ -1,15 +1,27 @@
 import { Course } from "src/entities/types/firebaseTypes";
-import { db } from "../config/firebase.config";
+import { db, firebaseInitialized } from "../config/firebase.config";
 
 const coursesCollection = db.collection("courses");
 
 export class CourseRepository {
   async getAllCourses(): Promise<Course[]> {
-    const snapshot = await coursesCollection.get();
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Course[];
+    if (!firebaseInitialized) {
+      console.warn(
+        "⚠️ Firebase not initialized - returning empty courses array"
+      );
+      return [];
+    }
+
+    try {
+      const snapshot = await coursesCollection.get();
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Course[];
+    } catch (error) {
+      console.error("❌ Error in getAllCourses:", error);
+      throw error;
+    }
   }
 
   async getCourseById(id: string): Promise<Course | null> {
