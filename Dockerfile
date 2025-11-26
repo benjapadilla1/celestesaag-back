@@ -1,22 +1,21 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY yarn.lock ./
 
 # Install dependencies
-RUN yarn install --frozen-lockfile
+RUN npm ci --include=dev
 
 # Copy source code
 COPY . .
 
 # Build the application
-RUN yarn build
+RUN npm run build
 
-# Expose port
-EXPOSE $PORT
+# Expose port (Railway sets PORT env var automatically)
+EXPOSE 8080
 
 # Start the application
-CMD ["yarn", "start"]
+CMD ["npm", "start"]
