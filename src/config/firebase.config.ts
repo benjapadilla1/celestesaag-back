@@ -1,20 +1,29 @@
 import admin from "firebase-admin";
+import * as fs from "fs";
+import * as path from "path";
 
 let serviceAccount;
 let firebaseInitialized = false;
 
 try {
-  if (!process.env.FIREBASE_ADMIN_KEY) {
-    console.warn("⚠️ FIREBASE_ADMIN_KEY environment variable is not set");
-    serviceAccount = null;
-  } else {
-    console.log("📝 Parsing FIREBASE_ADMIN_KEY...");
+  // First, try to load from file (for production deployments with uploaded file)
+  const filePath = path.join(process.cwd(), "firebase-admin-key.json");
+
+  if (fs.existsSync(filePath)) {
+    console.log("📁 Loading Firebase credentials from file...");
+    const fileContent = fs.readFileSync(filePath, "utf8");
+    serviceAccount = JSON.parse(fileContent);
+    console.log("✅ Firebase credentials loaded from file");
+    console.log("📋 Project ID:", serviceAccount.project_id);
+  }
+  // Fallback to environment variable
+  else if (process.env.FIREBASE_ADMIN_KEY) {
+    console.log("📝 Parsing FIREBASE_ADMIN_KEY from environment...");
 
     // Parse the JSON string from environment variable
     let rawKey = process.env.FIREBASE_ADMIN_KEY;
 
     // Handle escaped newlines in private_key
-    // Railway might escape the JSON, so we need to handle both cases
     try {
       serviceAccount = JSON.parse(rawKey);
     } catch (firstError) {
@@ -32,15 +41,22 @@ try {
       );
     }
 
-    console.log("✅ FIREBASE_ADMIN_KEY parsed successfully");
+    console.log("✅ FIREBASE_ADMIN_KEY parsed successfully from environment");
     console.log("📋 Project ID:", serviceAccount.project_id);
+  } else {
+    console.warn(
+      "⚠️ No Firebase credentials found (neither file nor environment variable)"
+    );
+    serviceAccount = null;
   }
 } catch (error) {
   console.error("❌ Firebase configuration error:", error);
-  console.error(
-    "Raw key preview:",
-    process.env.FIREBASE_ADMIN_KEY?.substring(0, 100) + "..."
-  );
+  if (process.env.FIREBASE_ADMIN_KEY) {
+    console.error(
+      "Raw key preview:",
+      process.env.FIREBASE_ADMIN_KEY?.substring(0, 100) + "..."
+    );
+  }
   serviceAccount = null;
 }
 
