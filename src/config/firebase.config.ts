@@ -6,24 +6,40 @@ let serviceAccount;
 let firebaseInitialized = false;
 
 try {
-  // First, try to load from file (for production deployments with uploaded file)
-  const filePath = path.join(process.cwd(), "firebase-admin-key.json");
+  // Try multiple possible file locations
+  const possiblePaths = [
+    path.join(process.cwd(), "firebase-admin-key.json"),
+    "/firebase-admin-key.json", // Root path (Koyeb file upload)
+    path.join(__dirname, "../../firebase-admin-key.json"), // Relative to dist/config
+  ];
 
   console.log("🔍 Looking for Firebase credentials...");
   console.log("📂 Current working directory:", process.cwd());
-  console.log("📄 Looking for file at:", filePath);
-  console.log("📋 File exists:", fs.existsSync(filePath));
 
-  if (fs.existsSync(filePath)) {
-    console.log("📁 Loading Firebase credentials from file...");
-    const fileContent = fs.readFileSync(filePath, "utf8");
+  let foundPath: string | null = null;
+  for (const filePath of possiblePaths) {
+    console.log(
+      `📄 Checking: ${filePath} - exists: ${fs.existsSync(filePath)}`
+    );
+    if (fs.existsSync(filePath)) {
+      foundPath = filePath;
+      break;
+    }
+  }
+
+  if (foundPath) {
+    console.log(`📁 Loading Firebase credentials from file: ${foundPath}`);
+    const fileContent = fs.readFileSync(foundPath, "utf8");
     serviceAccount = JSON.parse(fileContent);
     console.log("✅ Firebase credentials loaded from file");
     console.log("📋 Project ID:", serviceAccount.project_id);
   }
-  // Fallback to environment variable
+  // Fallback to environment variable (not recommended due to escaping issues)
   else if (process.env.FIREBASE_ADMIN_KEY) {
     console.log("📝 Parsing FIREBASE_ADMIN_KEY from environment...");
+    console.log(
+      "⚠️ Warning: Using environment variable may have JSON parsing issues"
+    );
 
     // Parse the JSON string from environment variable
     let rawKey = process.env.FIREBASE_ADMIN_KEY;
