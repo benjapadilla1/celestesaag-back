@@ -9,6 +9,11 @@ try {
   // First, try to load from file (for production deployments with uploaded file)
   const filePath = path.join(process.cwd(), "firebase-admin-key.json");
 
+  console.log("🔍 Looking for Firebase credentials...");
+  console.log("📂 Current working directory:", process.cwd());
+  console.log("📄 Looking for file at:", filePath);
+  console.log("📋 File exists:", fs.existsSync(filePath));
+
   if (fs.existsSync(filePath)) {
     console.log("📁 Loading Firebase credentials from file...");
     const fileContent = fs.readFileSync(filePath, "utf8");
@@ -47,10 +52,20 @@ try {
     console.warn(
       "⚠️ No Firebase credentials found (neither file nor environment variable)"
     );
+    console.log(
+      "💡 Tip: Either upload firebase-admin-key.json or set FIREBASE_ADMIN_KEY environment variable"
+    );
     serviceAccount = null;
   }
 } catch (error) {
   console.error("❌ Firebase configuration error:", error);
+  console.log("📂 Current directory contents:");
+  try {
+    const files = fs.readdirSync(process.cwd());
+    console.log(files.join(", "));
+  } catch (e) {
+    console.log("Could not read directory");
+  }
   if (process.env.FIREBASE_ADMIN_KEY) {
     console.error(
       "Raw key preview:",
