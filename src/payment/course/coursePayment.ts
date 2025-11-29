@@ -8,6 +8,11 @@ export const createCoursePayment = async (
   res: Response
 ): Promise<void> => {
   try {
+    if (!process.env.MP_ACCESS_TOKEN) {
+      console.error("❌ MP_ACCESS_TOKEN is not set - cannot create MercadoPago preference");
+      res.status(500).json({ message: "MercadoPago not configured" });
+      return;
+    }
     const { userId, courseId, coursePrice } = req.body;
     const paymentUrl = await createPaymentPreference(
       userId,
@@ -32,7 +37,9 @@ const createPaymentPreference = async (
 ) => {
   const preference = new Preference(MPClient);
 
-  const response = await preference.create({
+  let response;
+  try {
+    response = await preference.create({
     body: {
       items: [
         {
@@ -50,7 +57,11 @@ const createPaymentPreference = async (
         failure: `https://celestesaag.vercel.app/cursos`,
       },
     },
-  });
+    });
+  } catch (err: any) {
+    console.error("❌ MercadoPago preference creation failed:", err?.message || err);
+    throw new Error("MercadoPago preference creation failed");
+  }
 
   return response.init_point;
 };
